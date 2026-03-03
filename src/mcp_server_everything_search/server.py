@@ -313,7 +313,7 @@ Search Syntax Guide:
         await server.run(read_stream, write_stream, options, raise_exceptions=True)
 
 def configure_windows_console():
-    """Configure Windows console for UTF-8 output."""
+    """Configure Windows console for UTF-8 input and output."""
     import ctypes
 
     if sys.platform == "win32":
@@ -328,9 +328,10 @@ def configure_windows_console():
         mode.value |= ENABLE_VIRTUAL_TERMINAL_PROCESSING
         kernel32.SetConsoleMode(handle, mode)
         
-        # Set UTF-8 encoding for console output
+        # Set UTF-8 encoding for console I/O
         sys.stdout.reconfigure(encoding='utf-8')
         sys.stderr.reconfigure(encoding='utf-8')
+        sys.stdin.reconfigure(encoding='utf-8')
 
 def main() -> None:
     """Main entry point."""
