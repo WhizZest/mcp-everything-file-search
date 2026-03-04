@@ -1,6 +1,6 @@
 """Platform-specific search implementations with dedicated parameter models."""
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 from pydantic import BaseModel, Field
 from enum import Enum
 import platform
@@ -55,20 +55,7 @@ class LinuxSpecificParams(BaseModel):
         description="Only display count of matches (-c parameter)"
     )
 
-class WindowsSortOption(int, Enum):
-    """Sort options for Windows Everything search."""
-    NAME_ASC = 1
-    NAME_DESC = 2
-    PATH_ASC = 3
-    PATH_DESC = 4
-    SIZE_ASC = 5
-    SIZE_DESC = 6
-    EXT_ASC = 7
-    EXT_DESC = 8
-    CREATED_ASC = 11
-    CREATED_DESC = 12
-    MODIFIED_ASC = 13
-    MODIFIED_DESC = 14
+WindowsSortOption = Literal[1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14]
 
 class WindowsSpecificParams(BaseModel):
     """Windows-specific search parameters for Everything SDK."""
@@ -89,8 +76,8 @@ class WindowsSpecificParams(BaseModel):
         description="Enable regex search"
     )
     sort_by: WindowsSortOption = Field(
-        default=WindowsSortOption.NAME_ASC,
-        description="Sort order for results"
+        default=1,
+        description="Sort order for results. 1: NAME ASC, 2: NAME DESC, 3: PATH ASC, 4: PATH DESC, 5: SIZE ASC, 6: SIZE DESC, 7: EXT ASC, 8: EXT DESC, 11: CREATED ASC, 12: CREATED DESC, 13: MODIFIED ASC, 14: MODIFIED DESC"
     )
 
 class UnifiedSearchQuery(BaseSearchQuery):
