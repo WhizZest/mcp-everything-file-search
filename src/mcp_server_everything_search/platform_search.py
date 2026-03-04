@@ -55,7 +55,24 @@ class LinuxSpecificParams(BaseModel):
         description="Only display count of matches (-c parameter)"
     )
 
-WindowsSortOption = Literal[1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14]
+WINDOWS_SORT_OPTIONS = {
+    1: "Name Ascending",
+    2: "Name Descending",
+    3: "Path Ascending",
+    4: "Path Descending",
+    5: "Size Ascending",
+    6: "Size Descending",
+    7: "Extension Ascending",
+    8: "Extension Descending",
+    11: "Created Date Ascending",
+    12: "Created Date Descending",
+    13: "Modified Date Ascending",
+    14: "Modified Date Descending",
+}
+
+WindowsSortOption = Literal[tuple(WINDOWS_SORT_OPTIONS.keys())]
+
+_sort_descriptions = "; ".join([f"{k}={v}" for k, v in WINDOWS_SORT_OPTIONS.items()])
 
 class WindowsSpecificParams(BaseModel):
     """Windows-specific search parameters for Everything SDK."""
@@ -77,7 +94,7 @@ class WindowsSpecificParams(BaseModel):
     )
     sort_by: WindowsSortOption = Field(
         default=1,
-        description="Sort order for results. 1: NAME ASC, 2: NAME DESC, 3: PATH ASC, 4: PATH DESC, 5: SIZE ASC, 6: SIZE DESC, 7: EXT ASC, 8: EXT DESC, 11: CREATED ASC, 12: CREATED DESC, 13: MODIFIED ASC, 14: MODIFIED DESC"
+        description=f"Sort order for results. {_sort_descriptions}"
     )
 
 class UnifiedSearchQuery(BaseSearchQuery):
