@@ -1,8 +1,7 @@
 """Platform-specific search implementations with dedicated parameter models."""
 
-from typing import Optional, List, Dict, Any, Literal
+from typing import Optional, List, Dict, Any, Literal, get_args
 from pydantic import BaseModel, Field
-from enum import Enum
 import platform
 
 class BaseSearchQuery(BaseModel):
@@ -70,7 +69,19 @@ WINDOWS_SORT_OPTIONS = {
     14: "Modified Date Descending",
 }
 
-WindowsSortOption = Literal[tuple(WINDOWS_SORT_OPTIONS.keys())]
+# Define Literal type explicitly for MCP Inspector form compatibility
+WindowsSortOption = Literal[1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14]
+
+# Runtime validation: ensure Literal values match dictionary keys
+_literal_values = set(get_args(WindowsSortOption))
+_dict_keys = set(WINDOWS_SORT_OPTIONS.keys())
+
+if _literal_values != _dict_keys:
+    raise RuntimeError(
+        f"INTERNAL ERROR: WindowsSortOption Literal values ({sorted(_literal_values)}) "
+        f"do not match WINDOWS_SORT_OPTIONS keys ({sorted(_dict_keys)}). "
+        "Please update WindowsSortOption to match the dictionary keys."
+    )
 
 _sort_descriptions = "; ".join([f"{k}={v}" for k, v in WINDOWS_SORT_OPTIONS.items()])
 
