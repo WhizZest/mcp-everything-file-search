@@ -83,11 +83,26 @@ class MacSearchProvider(SearchProvider):
         match_case: bool = False,
         match_whole_word: bool = False,
         match_regex: bool = False,
-        sort_by: Optional[int] = None
+        sort_by: Optional[int] = None,
+        search_directory: Optional[str] = None,
+        live_updates: bool = False,
+        literal_query: bool = False,
+        interpret_query: bool = False
     ) -> List[SearchResult]:
         try:
             # Build mdfind command
             cmd = ['mdfind']
+            
+            # Add macOS-specific parameters
+            if search_directory:
+                cmd.extend(['-onlyin', search_directory])
+            if live_updates:
+                cmd.append('-live')
+            if literal_query:
+                cmd.append('-literal')
+            if interpret_query:
+                cmd.append('-interpret')
+            
             if match_path:
                 # When matching path, don't use -name
                 cmd.append(query)
@@ -152,15 +167,23 @@ class LinuxSearchProvider(SearchProvider):
         match_case: bool = False,
         match_whole_word: bool = False,
         match_regex: bool = False,
-        sort_by: Optional[int] = None
+        sort_by: Optional[int] = None,
+        ignore_case: bool = True,
+        regex_search: bool = False,
+        existing_files: bool = True,
+        count_only: bool = False
     ) -> List[SearchResult]:
         try:
             # Build locate command
             cmd = [self.locate_cmd]
-            if not match_case:
+            if ignore_case:
                 cmd.append('-i')
-            if match_regex:
-                cmd.append('--regex' if self.locate_type == 'mlocate' else '-r')
+            if regex_search:
+                cmd.append('-r' if self.locate_type == 'plocate' else '--regex')
+            if existing_files:
+                cmd.append('-e')
+            if count_only:
+                cmd.append('-c')
             cmd.append(query)
             
             # Execute search
