@@ -242,14 +242,39 @@ class EverythingSDK:
                 highlighted_filename = self.dll.Everything_GetResultHighlightedFileNameW(i)
                 highlighted_path = self.dll.Everything_GetResultHighlightedPathW(i)
 
+                # Convert timestamps with individual error handling
+                path = filename_buffer.value
+                print(f"Debug: Path for result {i}: {path}", file=sys.stderr)
+                
+                try:
+                    created = self._get_time(date_created.value).isoformat() if date_created.value else None
+                except Exception as e:
+                    print(f"Debug: Error converting created time for result {i}: {e}", file=sys.stderr)
+                    created = None
+                print(f"Debug: Created time for result {i}: {created}", file=sys.stderr)
+                
+                try:
+                    modified = self._get_time(date_modified.value).isoformat() if date_modified.value else None
+                except Exception as e:
+                    print(f"Debug: Error converting modified time for result {i}: {e}", file=sys.stderr)
+                    modified = None
+                print(f"Debug: Modified time for result {i}: {modified}", file=sys.stderr)
+                
+                try:
+                    accessed = self._get_time(date_accessed.value).isoformat() if date_accessed.value else None
+                except Exception as e:
+                    print(f"Debug: Error converting accessed time for result {i}: {e}", file=sys.stderr)
+                    accessed = None
+                print(f"Debug: Accessed time for result {i}: {accessed}", file=sys.stderr)
+
                 results.append(SearchResult(
-                    path=filename_buffer.value,
+                    path=path,
                     filename=filename,
                     extension=extension,
                     size=file_size.value,
-                    created=self._get_time(date_created.value) if date_created.value else None,
-                    modified=self._get_time(date_modified.value) if date_modified.value else None,
-                    accessed=self._get_time(date_accessed.value) if date_accessed.value else None,
+                    created=created,
+                    modified=modified,
+                    accessed=accessed,
                     attributes=attributes,
                     run_count=run_count,
                     highlighted_filename=highlighted_filename,
