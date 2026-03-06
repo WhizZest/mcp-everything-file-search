@@ -18,6 +18,10 @@ Parameters:
 
 - `query` (required): Search query string. See platform-specific notes below.
 - `max_results` (optional): Maximum number of results to return (default: 100, max: 1000)
+
+Platform-Specific Parameters:
+
+**Windows:**
 - `match_path` (optional): Match against full path instead of filename only (default: false)
 - `match_case` (optional): Enable case-sensitive search (default: false)
 - `match_whole_word` (optional): Match whole words only (default: false)
@@ -39,20 +43,102 @@ Parameters:
   - 14: Sort by modification date (newest first)
 ```
 
+**macOS:**
+- `live_updates` (optional): Provide live updates to search results (default: false)
+- `search_directory` (optional): Limit search to specific directory (default: null)
+- `literal_query` (optional): Treat query as literal string without interpretation (default: false)
+- `interpret_query` (optional): Interpret query as if typed in Spotlight menu (default: false)
+
+**Linux:**
+- `ignore_case` (optional): Ignore case distinctions (default: true)
+- `regex_search` (optional): Use regular expressions in patterns (default: false)
+- `existing_files` (optional): Only output existing files (default: true)
+- `count_only` (optional): Only display count of matches (default: false)
+
 Examples:
 
+**Basic (All Platforms):**
 ```json
 {
-  "query": "*.py",
-  "max_results": 50,
-  "sort_by": 6
+  "base": {
+    "query": "*.py",
+    "max_results": 50
+  }
+}
+```
+
+**Windows:**
+```json
+{
+  "base": {
+    "query": "*.py",
+    "max_results": 50
+  },
+  "windows_params": {
+    "sort_by": 6
+  }
 }
 ```
 
 ```json
 {
-  "query": "ext:py datemodified:today",
-  "max_results": 10
+  "base": {
+    "query": "ext:py datemodified:today",
+    "max_results": 10
+  },
+  "windows_params": {
+    "match_path": true
+  }
+}
+```
+
+**macOS:**
+```json
+{
+  "base": {
+    "query": "kind:image date:yesterday",
+    "max_results": 50
+  },
+  "mac_params": {
+    "live_updates": false
+  }
+}
+```
+
+```json
+{
+  "base": {
+    "query": "kMDItemAuthors ==[c] \"John Doe\""
+  },
+  "mac_params": {
+    "search_directory": "/Users/username/Documents"
+  }
+}
+```
+
+**Linux:**
+```json
+{
+  "base": {
+    "query": "*.py",
+    "max_results": 100
+  },
+  "linux_params": {
+    "ignore_case": true
+  }
+}
+```
+
+```json
+{
+  "base": {
+    "query": "/home/.*\\.txt$",
+    "max_results": 50
+  },
+  "linux_params": {
+    "regex_search": true,
+    "existing_files": true
+  }
 }
 ```
 
