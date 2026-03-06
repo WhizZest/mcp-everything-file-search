@@ -286,7 +286,7 @@ Search Syntax Guide:
                 results = search_provider.search_files(
                     query=query.query,
                     max_results=query.max_results,
-                    **platform_params.dict() if platform_params else {}
+                    **platform_params.model_dump() if platform_params else {}
                 )
             
             return [TextContent(
