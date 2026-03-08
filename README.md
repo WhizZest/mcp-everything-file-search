@@ -44,6 +44,13 @@ Platform-Specific Parameters:
 ```
 
 **macOS:**
+Uses Spotlight's `mdfind` command. Query syntax examples:
+- Filename search: `{"query": "-name ENABLE"}`
+- Metadata query: `{"query": "kMDItemAuthors ==[c] \"John Doe\""}`
+- Kind filter: `{"query": "kind:image date:yesterday"}`
+- Directory scope: Use `search_directory` parameter
+
+Parameters:
 - `live_updates` (optional): Provide live updates to search results (default: false)
 - `search_directory` (optional): Limit search to specific directory (default: null)
 - `literal_query` (optional): Treat query as literal string without interpretation (default: false)
@@ -67,18 +74,74 @@ Examples:
 }
 ```
 
-**Windows:**
+**macOS:**
 ```json
+// Filename search
+{
+  "base": {
+    "query": "-name ENABLE",
+    "max_results": 50
+  },
+  "mac_params": {
+    "search_directory": "/Users/john/Projects"
+  }
+}
+
+// Metadata query
+{
+  "base": {
+    "query": "kMDItemAuthors ==[c] \"John Doe\"",
+    "max_results": 50
+  }
+}
+
+// Kind filter
+{
+  "base": {
+    "query": "kind:image date:yesterday",
+    "max_results": 100
+  }
+}
+```
+
+**Linux:**
+```json
+// Basic search with case insensitive
 {
   "base": {
     "query": "*.py",
     "max_results": 50
   },
-  "windows_params": {
-    "sort_by": 6
+  "linux_params": {
+    "ignore_case": true,
+    "existing_files": true
+  }
+}
+
+// Regex search
+{
+  "base": {
+    "query": "test_.*\.py$",
+    "max_results": 100
+  },
+  "linux_params": {
+    "regex_search": true
+  }
+}
+
+// Count only mode
+{
+  "base": {
+    "query": "*.log",
+    "max_results": 1
+  },
+  "linux_params": {
+    "count_only": true
   }
 }
 ```
+
+**Windows:**
 
 ```json
 {

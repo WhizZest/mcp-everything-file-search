@@ -301,42 +301,30 @@ Search Syntax Guide:
                     match_regex=platform_params.match_regex,
                     sort_by=platform_params.sort_by
                 )
-            else:
-                # Use command-line tools (mdfind/locate)
-                if current_platform == 'darwin':
-                    mac_params_obj = query.mac_params or MacSpecificParams()
-                    results = search_provider.search_files(
-                        query=query.query,
-                        max_results=query.max_results,
-                        # Base parameters (pass defaults for macOS)
-                        match_path=False,
-                        match_case=False,
-                        match_whole_word=False,
-                        match_regex=False,
-                        sort_by=None,
-                        # Mac-specific parameters
-                        search_directory=mac_params_obj.search_directory,
-                        live_updates=mac_params_obj.live_updates,
-                        literal_query=mac_params_obj.literal_query,
-                        interpret_query=mac_params_obj.interpret_query
-                    )
-                elif current_platform == 'linux':
-                    linux_params_obj = query.linux_params or LinuxSpecificParams()
-                    results = search_provider.search_files(
-                        query=query.query,
-                        max_results=query.max_results,
-                        # Base parameters (pass defaults for Linux)
-                        match_path=False,
-                        match_case=False,
-                        match_whole_word=False,
-                        match_regex=False,
-                        sort_by=None,
-                        # Linux-specific parameters
-                        ignore_case=linux_params_obj.ignore_case,
-                        regex_search=linux_params_obj.regex_search,
-                        existing_files=linux_params_obj.existing_files,
-                        count_only=linux_params_obj.count_only
-                    )
+            elif current_platform == 'darwin':
+                # Use mdfind on macOS
+                mac_params_obj = query.mac_params or MacSpecificParams()
+                results = search_provider.search_files(
+                    query=query.query,
+                    max_results=query.max_results,
+                    # Mac-specific parameters
+                    search_directory=mac_params_obj.search_directory,
+                    live_updates=mac_params_obj.live_updates,
+                    literal_query=mac_params_obj.literal_query,
+                    interpret_query=mac_params_obj.interpret_query
+                )
+            elif current_platform == 'linux':
+                # Use locate/plocate on Linux
+                linux_params_obj = query.linux_params or LinuxSpecificParams()
+                results = search_provider.search_files(
+                    query=query.query,
+                    max_results=query.max_results,
+                    # Linux-specific parameters
+                    ignore_case=linux_params_obj.ignore_case,
+                    regex_search=linux_params_obj.regex_search,
+                    existing_files=linux_params_obj.existing_files,
+                    count_only=linux_params_obj.count_only
+                )
             
             return [TextContent(
                 type="text",

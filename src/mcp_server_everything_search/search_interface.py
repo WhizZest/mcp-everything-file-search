@@ -28,12 +28,7 @@ class SearchProvider(abc.ABC):
     def search_files(
         self,
         query: str,
-        max_results: int = 100,
-        match_path: bool = False,
-        match_case: bool = False,
-        match_whole_word: bool = False,
-        match_regex: bool = False,
-        sort_by: Optional[int] = None
+        max_results: int = 100
     ) -> List[SearchResult]:
         """Execute a file search using platform-specific methods."""
         pass
@@ -79,11 +74,7 @@ class MacSearchProvider(SearchProvider):
         self,
         query: str,
         max_results: int = 100,
-        match_path: bool = False,
-        match_case: bool = False,
-        match_whole_word: bool = False,
-        match_regex: bool = False,
-        sort_by: Optional[int] = None,
+        # macOS-specific parameters
         search_directory: Optional[str] = None,
         live_updates: bool = False,
         literal_query: bool = False,
@@ -103,13 +94,10 @@ class MacSearchProvider(SearchProvider):
             if interpret_query:
                 cmd.append('-interpret')
             
-            # Add query - handle match_path for macOS
-            if match_path:
-                # Match against full path (don't use -name)
-                cmd.append(query)
-            else:
-                # Match only filename (default behavior)
-                cmd.extend(['-name', query])
+            # Add query - pass directly to mdfind
+            # Users can use "-name filename" for filename search
+            # or metadata queries like "kMDItemAuthors ==[c] \"John\""
+            cmd.append(query)
             
             # Execute search
             result = subprocess.run(cmd, capture_output=True, text=True)
@@ -165,11 +153,7 @@ class LinuxSearchProvider(SearchProvider):
         self,
         query: str,
         max_results: int = 100,
-        match_path: bool = False,
-        match_case: bool = False,
-        match_whole_word: bool = False,
-        match_regex: bool = False,
-        sort_by: Optional[int] = None,
+        # Linux-specific parameters
         ignore_case: bool = True,
         regex_search: bool = False,
         existing_files: bool = True,
