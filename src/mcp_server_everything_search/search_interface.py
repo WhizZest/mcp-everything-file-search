@@ -79,6 +79,11 @@ class MacSearchProvider(SearchProvider):
         self,
         query: str,
         max_results: int = 100,
+        match_path: bool = False,
+        match_case: bool = False,
+        match_whole_word: bool = False,
+        match_regex: bool = False,
+        sort_by: Optional[int] = None,
         search_directory: Optional[str] = None,
         live_updates: bool = False,
         literal_query: bool = False,
@@ -98,10 +103,12 @@ class MacSearchProvider(SearchProvider):
             if interpret_query:
                 cmd.append('-interpret')
             
+            # Add query - handle match_path for macOS
             if match_path:
-                # When matching path, don't use -name
+                # Match against full path (don't use -name)
                 cmd.append(query)
             else:
+                # Match only filename (default behavior)
                 cmd.extend(['-name', query])
             
             # Execute search
@@ -158,6 +165,11 @@ class LinuxSearchProvider(SearchProvider):
         self,
         query: str,
         max_results: int = 100,
+        match_path: bool = False,
+        match_case: bool = False,
+        match_whole_word: bool = False,
+        match_regex: bool = False,
+        sort_by: Optional[int] = None,
         ignore_case: bool = True,
         regex_search: bool = False,
         existing_files: bool = True,
@@ -187,9 +199,25 @@ class LinuxSearchProvider(SearchProvider):
                     )
                 raise RuntimeError(f"{self.locate_cmd} failed: {result.stderr}")
 
-            # Process results
-            paths = result.stdout.splitlines()[:max_results]
-            return [self._convert_path_to_result(path) for path in paths]
+            # Process results - handle count_only mode
+            if count_only:
+                # When count_only is True, stdout is a number
+                try:
+                    count = int(result.stdout.strip())
+                    # Return a single SearchResult with the count as filename
+                    return [SearchResult(
+                        path="count_result",
+                        filename=f"{count} files found",
+                        size=count
+                    )]
+                except ValueError:
+                    # If parsing fails, treat as normal output
+                    paths = result.stdout.splitlines()[:max_results]
+                    return [self._convert_path_to_result(path) for path in paths]
+            else:
+                # Normal mode - parse paths
+                paths = result.stdout.splitlines()[:max_results]
+                return [self._convert_path_to_result(path) for path in paths]
             
         except FileNotFoundError:
             raise RuntimeError(

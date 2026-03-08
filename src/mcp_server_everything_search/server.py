@@ -226,6 +226,8 @@ Search Syntax Guide:
             # Parse and validate inputs
             base_params = {}
             windows_params = {}
+            mac_params = {}
+            linux_params = {}
             
             # Handle base parameters
             if 'base' in arguments:
@@ -253,6 +255,30 @@ Search Syntax Guide:
                     windows_params = arguments['windows_params']
                 else:
                     raise ValueError("'windows_params' must be a string or dictionary")
+            
+            # Handle macOS-specific parameters
+            if 'mac_params' in arguments:
+                if isinstance(arguments['mac_params'], str):
+                    try:
+                        mac_params = json.loads(arguments['mac_params'])
+                    except json.JSONDecodeError:
+                        raise ValueError("Invalid JSON in mac_params")
+                elif isinstance(arguments['mac_params'], dict):
+                    mac_params = arguments['mac_params']
+                else:
+                    raise ValueError("'mac_params' must be a string or dictionary")
+            
+            # Handle Linux-specific parameters
+            if 'linux_params' in arguments:
+                if isinstance(arguments['linux_params'], str):
+                    try:
+                        linux_params = json.loads(arguments['linux_params'])
+                    except json.JSONDecodeError:
+                        raise ValueError("Invalid JSON in linux_params")
+                elif isinstance(arguments['linux_params'], dict):
+                    linux_params = arguments['linux_params']
+                else:
+                    raise ValueError("'linux_params' must be a string or dictionary")
 
             # Combine parameters
             query_params = {
@@ -277,17 +303,40 @@ Search Syntax Guide:
                 )
             else:
                 # Use command-line tools (mdfind/locate)
-                platform_params = None
                 if current_platform == 'darwin':
-                    platform_params = query.mac_params or {}
+                    mac_params_obj = query.mac_params or MacSpecificParams()
+                    results = search_provider.search_files(
+                        query=query.query,
+                        max_results=query.max_results,
+                        # Base parameters (pass defaults for macOS)
+                        match_path=False,
+                        match_case=False,
+                        match_whole_word=False,
+                        match_regex=False,
+                        sort_by=None,
+                        # Mac-specific parameters
+                        search_directory=mac_params_obj.search_directory,
+                        live_updates=mac_params_obj.live_updates,
+                        literal_query=mac_params_obj.literal_query,
+                        interpret_query=mac_params_obj.interpret_query
+                    )
                 elif current_platform == 'linux':
-                    platform_params = query.linux_params or {}
-
-                results = search_provider.search_files(
-                    query=query.query,
-                    max_results=query.max_results,
-                    **platform_params.model_dump() if platform_params else {}
-                )
+                    linux_params_obj = query.linux_params or LinuxSpecificParams()
+                    results = search_provider.search_files(
+                        query=query.query,
+                        max_results=query.max_results,
+                        # Base parameters (pass defaults for Linux)
+                        match_path=False,
+                        match_case=False,
+                        match_whole_word=False,
+                        match_regex=False,
+                        sort_by=None,
+                        # Linux-specific parameters
+                        ignore_case=linux_params_obj.ignore_case,
+                        regex_search=linux_params_obj.regex_search,
+                        existing_files=linux_params_obj.existing_files,
+                        count_only=linux_params_obj.count_only
+                    )
             
             return [TextContent(
                 type="text",
