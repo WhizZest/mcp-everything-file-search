@@ -9,7 +9,12 @@ from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool, Resource, ResourceTemplate, Prompt
 from pydantic import BaseModel, Field
 
-from .platform_search import UnifiedSearchQuery, WindowsSpecificParams, build_search_command
+from .platform_search import (
+    UnifiedSearchQuery,
+    WindowsSpecificParams,
+    MacSpecificParams,
+    LinuxSpecificParams
+)
 from .search_interface import SearchProvider
 
 class SearchQuery(BaseModel):
@@ -243,49 +248,62 @@ Search Syntax Guide:
                 else:
                     raise ValueError("'base' parameter must be a string or dictionary")
 
-            # Handle Windows-specific parameters
-            if 'windows_params' in arguments:
-                if isinstance(arguments['windows_params'], str):
-                    try:
-                        windows_params = json.loads(arguments['windows_params'])
-                    except json.JSONDecodeError:
-                        raise ValueError("Invalid JSON in windows_params")
-                elif isinstance(arguments['windows_params'], dict):
-                    # If already a dict, use directly
-                    windows_params = arguments['windows_params']
-                else:
-                    raise ValueError("'windows_params' must be a string or dictionary")
-            
-            # Handle macOS-specific parameters
-            if 'mac_params' in arguments:
-                if isinstance(arguments['mac_params'], str):
-                    try:
-                        mac_params = json.loads(arguments['mac_params'])
-                    except json.JSONDecodeError:
-                        raise ValueError("Invalid JSON in mac_params")
-                elif isinstance(arguments['mac_params'], dict):
-                    mac_params = arguments['mac_params']
-                else:
-                    raise ValueError("'mac_params' must be a string or dictionary")
-            
-            # Handle Linux-specific parameters
-            if 'linux_params' in arguments:
-                if isinstance(arguments['linux_params'], str):
-                    try:
-                        linux_params = json.loads(arguments['linux_params'])
-                    except json.JSONDecodeError:
-                        raise ValueError("Invalid JSON in linux_params")
-                elif isinstance(arguments['linux_params'], dict):
-                    linux_params = arguments['linux_params']
-                else:
-                    raise ValueError("'linux_params' must be a string or dictionary")
+            # Handle platform-specific parameters based on current platform
+            if current_platform == 'windows':
+                # Handle Windows-specific parameters
+                if 'windows_params' in arguments:
+                    if isinstance(arguments['windows_params'], str):
+                        try:
+                            windows_params = json.loads(arguments['windows_params'])
+                        except json.JSONDecodeError:
+                            raise ValueError("Invalid JSON in windows_params")
+                    elif isinstance(arguments['windows_params'], dict):
+                        windows_params = arguments['windows_params']
+                    else:
+                        raise ValueError("'windows_params' must be a string or dictionary")
+                
+                query_params = {
+                    **base_params,
+                    'windows_params': windows_params
+                }
 
-            # Combine parameters
-            query_params = {
-                **base_params,
-                'windows_params': windows_params
-            }
+            elif current_platform == 'darwin':
+                # Handle macOS-specific parameters
+                if 'mac_params' in arguments:
+                    if isinstance(arguments['mac_params'], str):
+                        try:
+                            mac_params = json.loads(arguments['mac_params'])
+                        except json.JSONDecodeError:
+                            raise ValueError("Invalid JSON in mac_params")
+                    elif isinstance(arguments['mac_params'], dict):
+                        mac_params = arguments['mac_params']
+                    else:
+                        raise ValueError("'mac_params' must be a string or dictionary")
+                
+                query_params = {
+                    **base_params,
+                    'mac_params': mac_params
+                }
 
+            elif current_platform == 'linux':
+                # Handle Linux-specific parameters
+                if 'linux_params' in arguments:
+                    if isinstance(arguments['linux_params'], str):
+                        try:
+                            linux_params = json.loads(arguments['linux_params'])
+                        except json.JSONDecodeError:
+                            raise ValueError("Invalid JSON in linux_params")
+                    elif isinstance(arguments['linux_params'], dict):
+                        linux_params = arguments['linux_params']
+                    else:
+                        raise ValueError("'linux_params' must be a string or dictionary")
+                
+                query_params = {
+                    **base_params,
+                    'linux_params': linux_params
+                }
+
+            # Combine parameters - platform-specific params already included above
             # Create unified query
             query = UnifiedSearchQuery(**query_params)
 

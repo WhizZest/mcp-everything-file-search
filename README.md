@@ -75,8 +75,9 @@ Examples:
 ```
 
 **macOS:**
+
+Filename search:
 ```json
-// Filename search
 {
   "base": {
     "query": "-name ENABLE",
@@ -86,16 +87,20 @@ Examples:
     "search_directory": "/Users/john/Projects"
   }
 }
+```
 
-// Metadata query
+Metadata query:
+```json
 {
   "base": {
     "query": "kMDItemAuthors ==[c] \"John Doe\"",
     "max_results": 50
   }
 }
+```
 
-// Kind filter
+Kind filter:
+```json
 {
   "base": {
     "query": "kind:image date:yesterday",
@@ -105,8 +110,9 @@ Examples:
 ```
 
 **Linux:**
+
+Basic search with case insensitive:
 ```json
-// Basic search with case insensitive
 {
   "base": {
     "query": "*.py",
@@ -117,19 +123,23 @@ Examples:
     "existing_files": true
   }
 }
+```
 
-// Regex search
+Regex search:
+```json
 {
   "base": {
-    "query": "test_.*\.py$",
+    "query": "test_.*\\.py$",
     "max_results": 100
   },
   "linux_params": {
     "regex_search": true
   }
 }
+```
 
-// Count only mode
+Count only mode:
+```json
 {
   "base": {
     "query": "*.log",
