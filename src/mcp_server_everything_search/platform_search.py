@@ -52,7 +52,7 @@ class LinuxSpecificParams(BaseModel):
     )
     count_only: bool = Field(
         default=False,
-        description="Only display count of matches (-c parameter)"
+        description="Only display count of matches (-c parameter). When enabled, max_results is ignored and only the total count is returned"
     )
 
 class WindowsSortOption(int, Enum):
