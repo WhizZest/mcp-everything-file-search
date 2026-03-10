@@ -346,15 +346,15 @@ Search Syntax Guide:
             
             return [TextContent(
                 type="text",
-                text="\n".join([
+                text=f"Total: {results.total_count}\n\n" + "\n".join([
                     f"Path: {r.path}\n"
                     f"Filename: {r.filename}"
                     f"{f' ({r.extension})' if r.extension else ''}\n"
                     f"Size: {r.size:,} bytes\n"
-                    f"Created: {r.created if r.created else 'N/A'}\n"
-                    f"Modified: {r.modified if r.modified else 'N/A'}\n"
-                    f"Accessed: {r.accessed if r.accessed else 'N/A'}\n"
-                    for r in results
+                    f"Created: {r.created.isoformat() if r.created else 'N/A'}\n"
+                    f"Modified: {r.modified.isoformat() if r.modified else 'N/A'}\n"
+                    f"Accessed: {r.accessed.isoformat() if r.accessed else 'N/A'}\n"
+                    for r in results.results
                 ])
             )]
         except Exception as e:

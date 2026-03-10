@@ -60,7 +60,7 @@ Parameters:
 - `ignore_case` (optional): Ignore case distinctions (default: true)
 - `regex_search` (optional): Use regular expressions in patterns (default: false)
 - `existing_files` (optional): Only output existing files (default: true)
-- `count_only` (optional): Only display count of matches (default: false)
+- `count_only` (optional): Only display count of matches (default: false). When enabled, `max_results` is ignored and only the total count is returned
 
 Examples:
 

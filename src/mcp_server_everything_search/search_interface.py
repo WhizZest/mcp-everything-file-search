@@ -19,7 +19,23 @@ class SearchResult:
     created: Optional[datetime] = None
     modified: Optional[datetime] = None
     accessed: Optional[datetime] = None
-    attributes: Optional[str] = None
+    attributes: Optional[int] = None
+    run_count: Optional[int] = None
+    highlighted_filename: Optional[str] = None
+    highlighted_path: Optional[str] = None
+
+@dataclass
+class SearchResponse:
+    """Search response containing results and metadata."""
+    results: List[SearchResult]
+    total_count: int = 0
+    
+    def __post_init__(self):
+        if len(self.results) > 0 and self.total_count == 0:
+            self.total_count = len(self.results)
+    
+    def __len__(self):
+        return len(self.results)
 
 class SearchProvider(abc.ABC):
     """Abstract base class for platform-specific search implementations."""
@@ -29,7 +45,7 @@ class SearchProvider(abc.ABC):
         self,
         query: str,
         max_results: int = 100
-    ) -> List[SearchResult]:
+    ) -> SearchResponse:
         """Execute a file search using platform-specific methods."""
         pass
 
@@ -58,13 +74,19 @@ class SearchProvider(abc.ABC):
                 size=stat.st_size,
                 created=datetime.fromtimestamp(stat.st_ctime),
                 modified=datetime.fromtimestamp(stat.st_mtime),
-                accessed=datetime.fromtimestamp(stat.st_atime)
+                accessed=datetime.fromtimestamp(stat.st_atime),
+                run_count=None,
+                highlighted_filename=None,
+                highlighted_path=None
             )
-        except (OSError, ValueError) as e:
+        except (OSError, ValueError):
             # If we can't access the file, return basic info
             return SearchResult(
                 path=str(path),
-                filename=os.path.basename(path)
+                filename=os.path.basename(path),
+                run_count=None,
+                highlighted_filename=None,
+                highlighted_path=None
             )
 
 class MacSearchProvider(SearchProvider):
@@ -79,7 +101,7 @@ class MacSearchProvider(SearchProvider):
         live_updates: bool = False,
         literal_query: bool = False,
         interpret_query: bool = False
-    ) -> List[SearchResult]:
+    ) -> SearchResponse:
         try:
             # Build mdfind command
             cmd = ['mdfind']
@@ -94,6 +116,9 @@ class MacSearchProvider(SearchProvider):
             if interpret_query:
                 cmd.append('-interpret')
             
+            # PERFORMANCE OPTIMIZATION: Limit results at command level
+            cmd.extend(['-limit', str(max_results)])
+            
             # Add query - pass directly to mdfind
             # Users can use "-name filename" for filename search
             # or metadata queries like "kMDItemAuthors ==[c] \"John\""
@@ -105,8 +130,11 @@ class MacSearchProvider(SearchProvider):
                 raise RuntimeError(f"mdfind failed: {result.stderr}")
 
             # Process results
-            paths = result.stdout.splitlines()[:max_results]
-            return [self._convert_path_to_result(path) for path in paths]
+            # PERFORMANCE OPTIMIZATION: No need to slice, already limited by -limit
+            paths = result.stdout.splitlines()
+            results = [self._convert_path_to_result(path) for path in paths]
+            
+            return SearchResponse(results=results)
             
         except subprocess.CalledProcessError as e:
             raise RuntimeError(f"Search failed: {e}")
@@ -158,7 +186,7 @@ class LinuxSearchProvider(SearchProvider):
         regex_search: bool = False,
         existing_files: bool = True,
         count_only: bool = False
-    ) -> List[SearchResult]:
+    ) -> SearchResponse:
         try:
             # Build locate command
             cmd = [self.locate_cmd]
@@ -170,6 +198,10 @@ class LinuxSearchProvider(SearchProvider):
                 cmd.append('-e')
             if count_only:
                 cmd.append('-c')
+            else:
+                # PERFORMANCE OPTIMIZATION: Limit results at command level
+                # Note: -n and -c are mutually exclusive
+                cmd.extend(['-n', str(max_results)])
             cmd.append(query)
             
             # Execute search
@@ -183,25 +215,27 @@ class LinuxSearchProvider(SearchProvider):
                     )
                 raise RuntimeError(f"{self.locate_cmd} failed: {result.stderr}")
 
-            # Process results - handle count_only mode
+            # Handle count_only mode
             if count_only:
-                # When count_only is True, stdout is a number
                 try:
                     count = int(result.stdout.strip())
-                    # Return a single SearchResult with the count as filename
-                    return [SearchResult(
-                        path="count_result",
-                        filename=f"{count} files found",
-                        size=count
-                    )]
+                    # Count mode: only return statistics, no actual results
+                    return SearchResponse(
+                        results=[],
+                        total_count=count
+                    )
                 except ValueError:
-                    # If parsing fails, treat as normal output
-                    paths = result.stdout.splitlines()[:max_results]
-                    return [self._convert_path_to_result(path) for path in paths]
+                    # Parse failed - stdout is not a valid integer
+                    raise RuntimeError(
+                        f"Failed to parse count from locate output: {result.stdout.strip()}"
+                    )
             else:
-                # Normal mode - parse paths
-                paths = result.stdout.splitlines()[:max_results]
-                return [self._convert_path_to_result(path) for path in paths]
+                # Normal mode: return list of results
+                # PERFORMANCE OPTIMIZATION: No need to slice, already limited by -n
+                paths = result.stdout.splitlines()
+                results = [self._convert_path_to_result(path) for path in paths]
+                
+                return SearchResponse(results=results)
             
         except FileNotFoundError:
             raise RuntimeError(
@@ -234,10 +268,10 @@ class WindowsSearchProvider(SearchProvider):
         match_whole_word: bool = False,
         match_regex: bool = False,
         sort_by: Optional[int] = None
-    ) -> List[SearchResult]:
+    ) -> SearchResponse:
         # Replace double backslashes with single backslashes
         query = query.replace("\\\\", "\\")
-        # If the query.query contains forward slashes, replace them with backslashes
+        # If the query contains forward slashes, replace them with backslashes
         query = query.replace("/", "\\")
 
         return self.everything_sdk.search_files(
