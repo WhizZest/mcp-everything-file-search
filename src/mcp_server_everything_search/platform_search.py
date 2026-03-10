@@ -14,7 +14,7 @@ class BaseSearchQuery(BaseModel):
         default=100,
         ge=1,
         le=1000,
-        description="Maximum number of results to return (1-1000)"
+        description="Maximum number of results to return (1-1000). When set, total_count reflects the number of returned results, not the total matches. Use count_only mode (Linux) to get total match count without result limits."
     )
 
 class MacSpecificParams(BaseModel):

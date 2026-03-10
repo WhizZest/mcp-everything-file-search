@@ -19,7 +19,7 @@ class SearchResult:
     created: Optional[datetime] = None
     modified: Optional[datetime] = None
     accessed: Optional[datetime] = None
-    attributes: Optional[str] = None
+    attributes: Optional[int] = None
     run_count: Optional[int] = None
     highlighted_filename: Optional[str] = None
     highlighted_path: Optional[str] = None
@@ -225,8 +225,10 @@ class LinuxSearchProvider(SearchProvider):
                         total_count=count
                     )
                 except ValueError:
-                    # Parse failed, return empty response
-                    return SearchResponse(results=[])
+                    # Parse failed - stdout is not a valid integer
+                    raise RuntimeError(
+                        f"Failed to parse count from locate output: {result.stdout.strip()}"
+                    )
             else:
                 # Normal mode: return list of results
                 # PERFORMANCE OPTIMIZATION: No need to slice, already limited by -n
