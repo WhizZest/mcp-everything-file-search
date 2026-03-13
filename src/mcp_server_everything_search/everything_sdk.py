@@ -247,21 +247,21 @@ class EverythingSDK:
                 print(f"Debug: Path for result {i}: {path}", file=sys.stderr)
                 
                 try:
-                    created = self._get_time(date_created.value).isoformat() if date_created.value else None
+                    created=self._get_time(date_created.value) if date_created.value else None
                 except Exception as e:
                     print(f"Debug: Error converting created time for result {i}: {e}", file=sys.stderr)
                     created = None
                 print(f"Debug: Created time for result {i}: {created}", file=sys.stderr)
                 
                 try:
-                    modified = self._get_time(date_modified.value).isoformat() if date_modified.value else None
+                    modified = self._get_time(date_modified.value) if date_modified.value else None
                 except Exception as e:
                     print(f"Debug: Error converting modified time for result {i}: {e}", file=sys.stderr)
                     modified = None
                 print(f"Debug: Modified time for result {i}: {modified}", file=sys.stderr)
                 
                 try:
-                    accessed = self._get_time(date_accessed.value).isoformat() if date_accessed.value else None
+                    accessed = self._get_time(date_accessed.value) if date_accessed.value else None
                 except Exception as e:
                     print(f"Debug: Error converting accessed time for result {i}: {e}", file=sys.stderr)
                     accessed = None
