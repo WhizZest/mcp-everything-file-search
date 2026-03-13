@@ -242,14 +242,35 @@ class EverythingSDK:
                 highlighted_filename = self.dll.Everything_GetResultHighlightedFileNameW(i)
                 highlighted_path = self.dll.Everything_GetResultHighlightedPathW(i)
 
+                # Convert timestamps with individual error handling
+                path = filename_buffer.value
+                
+                try:
+                    created = self._get_time(date_created.value) if date_created.value else None
+                except Exception as e:
+                    print(f"Debug: Error converting created time for result {i}: {e}", file=sys.stderr)
+                    created = None
+                
+                try:
+                    modified = self._get_time(date_modified.value) if date_modified.value else None
+                except Exception as e:
+                    print(f"Debug: Error converting modified time for result {i}: {e}", file=sys.stderr)
+                    modified = None
+                
+                try:
+                    accessed = self._get_time(date_accessed.value) if date_accessed.value else None
+                except Exception as e:
+                    print(f"Debug: Error converting accessed time for result {i}: {e}", file=sys.stderr)
+                    accessed = None
+
                 results.append(SearchResult(
-                    path=filename_buffer.value,
+                    path=path,
                     filename=filename,
                     extension=extension,
                     size=file_size.value,
-                    created=self._get_time(date_created.value) if date_created.value else None,
-                    modified=self._get_time(date_modified.value) if date_modified.value else None,
-                    accessed=self._get_time(date_accessed.value) if date_accessed.value else None,
+                    created=created,
+                    modified=modified,
+                    accessed=accessed,
                     attributes=attributes,
                     run_count=run_count,
                     highlighted_filename=highlighted_filename,
